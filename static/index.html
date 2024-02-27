@@ -1,0 +1,89 @@
+<html>
+
+<head>
+  <title>Belay</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kode+Mono:wght@400..700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="/static/style.css">
+  </link>
+</head>
+
+<body>
+  <div class="wrapper">
+    <!--header-->
+    <div class="header">
+      <div class="hero">
+        <h2><a>Belay</a></h2>
+      </div>
+      <div class="loginHeader">
+        <button class="loggedOut" onclick="navigateTo(LOGIN)"> Login</button>
+        <button class="loggedIn" onclick="navigateTo(PROFILE)"> id: <span class="username"></span> </button>
+        <button class="createChannelButton" onclick="createChannel()">Create a channel</button>
+        <button class="signup" onclick="signup()">Signup </button> 
+      </div>
+    </div>
+
+    <!--channels-->
+    <div class="channels">
+      <h3>
+        Channels
+      </h3>
+      <div class="channelList">
+
+      </div>
+    </div>
+    <div class="splash main">
+      <h3>
+        Select a channel
+      </h3></div>
+    <div class="profile main">
+      <div class="alignedForm">
+        <div class="form-group">
+          <label for="username">Username: </label>
+          <input name="username" value="">
+        </div>
+        <div class="form-group">
+          <label for="password">Password: </label>
+          <input type="password" name="password" value="">
+          <error>Passwords don't match</error>
+        </div>
+        <div class="form-group">
+          <label for="repeatPassword">Repeat: </label>
+          <input type="password" name="repeatPassword" value="">
+        </div>
+        <div class="button-group">
+          <button onclick="update()">update</button>
+          <button class="exit goToSplash" onclick="postloginredirect()">Cool, let's go!</button>
+          <button class="exit logout" onclick="logout()">Log out</button>
+        </div>
+      </div>
+    </div>
+    <!--end of profile main-->
+    <div class="login main">
+      <div class="auth container">
+        <h3>Enter your username and password to log in:</h3>
+        <div class="alignedForm login">
+          <div class="form-group">
+            <label for="username">Username</label>
+            <input name="username"></input>
+            <label for="password">Password</label>
+            <input type="password" name="password">
+          </div>
+          <div class="button-group">
+            <button id="loginbutton" onclick="login()">Login </button>
+          </div>
+        </div>
+        <div class="failed"> <!-- TODO: Hide me by default. Show only on failed login attempts -->
+          <div class="message hide" id="loginfailmessage">
+            Oops, that username and password don't match any of our users!
+          </div>
+        </div>
+      </div>
+    </div>
+      
+  </div>
+  <script src="/static/script.js"> </script>
+</body>
+
+</html>

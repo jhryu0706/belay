@@ -1,0 +1,137 @@
+/* Global styles */
+body {
+  background-color: rgb(1, 22, 30);
+  margin: 0;
+  font-family: "Kode Mono", serif;
+  font-weight: 600;
+  font-size: large;
+  line-height: 30px;
+}
+
+h3 {
+  font-family: "Kode Mono", serif;
+  font-size: 20px;
+  font-weight: 700;
+  text-align: center;
+
+}
+button {
+  font-family: "Kode Mono", serif;
+  border: 4px double black;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 12px;
+  margin-bottom: 5px;
+  border-radius: 7px;
+  will-change: transform;
+  transition: background-color 0.25s ease-in-out;
+  cursor: pointer; 
+  width:300px;
+}
+
+button:hover {
+  background-color: cornsilk;
+}
+
+.wrapper {
+  display: grid;
+  grid-template-columns: 1fr 2fr 2fr;
+  grid-template-rows: 1fr 9fr 1fr;
+  margin: auto;
+  background-color: white;
+  box-shadow: 0 0 20px black;
+  gap: 20px;
+  padding: 20px;
+}
+
+.header {
+  font-family: "Kode Mono", serif;
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+  padding: 40px;
+  grid-column: 1 / 4;
+  grid-row: 1;
+  border: 4px dotted black;
+}
+
+.header .hero {
+  grid-column: 1;
+  font-size: 30px;
+}
+
+.loginHeader {
+  grid-column: 2;
+  z-index: 5;
+  align-self:center;
+}
+
+.loginHeader > div {
+  font-family: "Kode Mono", serif;
+  margin-left: auto;
+  font-size: 18px;
+  text-decoration: none;
+  padding: 10px;
+  border-radius: 2px;
+  transition: transform 250ms;
+}
+
+.channels {
+  grid-column: 1;
+  grid-row: 2/9;
+  border: 4px dotted black;
+  text-align: center;
+}
+
+.main {
+  padding: 8px;
+  grid-column: 2 / 4;
+  grid-row: 2/9;
+  border: 4px dotted black;
+}
+
+.form-group {
+  display: flex;
+  margin: 30px;
+  gap: 30px;
+  align-items: center;
+  justify-content: center;
+}
+
+
+.form-group input, .form-group button {
+  height: 30px; 
+  padding: 0 12px; 
+  font-size: 14px; 
+  border: solid 1px green;
+  
+}
+
+.button-group {
+  margin-top: 50px;
+  margin-inline: 20px;
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.alignedForm error {
+  color: gray;
+  display: none;
+  font-size: 13px;
+}
+
+.alignedForm input:invalid ~ error {
+  display: inline;
+}
+
+.footer {
+  padding: 8px;
+  grid-column: 1 / 4;
+  grid-row: 9/11;
+}
+
+.hide {
+  display: none;
+}
+/* Header styles */
