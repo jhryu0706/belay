@@ -6,6 +6,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Kode+Mono:wght@400..700&display=swap" rel="stylesheet">
   <link rel="stylesheet" type="text/css" href="/static/style.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,0,0" />
+  <link rel="stylesheet" type="text/css" href="/static/style.css"></link>
   </link>
 </head>
 
@@ -30,13 +32,17 @@
         Channels
       </h3>
       <div class="channelList">
-
       </div>
     </div>
+
+      <!--splash-->
     <div class="splash main">
       <h3>
         Select a channel
-      </h3></div>
+      </h3>
+    </div>
+
+    <!--profile-->
     <div class="profile main">
       <div class="alignedForm">
         <div class="form-group">
@@ -60,6 +66,8 @@
       </div>
     </div>
     <!--end of profile main-->
+
+    <!--login-->
     <div class="login main">
       <div class="auth container">
         <h3>Enter your username and password to log in:</h3>
@@ -80,6 +88,26 @@
           </div>
         </div>
       </div>
+    </div>
+    <!--end of login main-->
+
+    <!--conversations-->
+    <div class="conversations main">
+        <h3 id = "conversationName" onclick="showedit()">
+        </h3>
+        <a class="clicktoedit"> Click to edit <span class="material-symbols-outlined md-18">edit</span></a>
+        <h3 class="editChannelName hide">
+          <input id="channelNameInput" value="">
+          <button id="channeledit" onclick="editChannelName()">Save</button>
+        </h3>
+        <div class="postList">
+        </div>
+        <div class="postForm">
+          <div class="form-group">
+            <textarea name="post" value=""></textarea>
+            <button onclick="createPost()">Add</button>
+          </div>
+        </div>
     </div>
       
   </div>

@@ -104,9 +104,10 @@ def login():
     if username and password:
         user = query_db('SELECT * FROM users WHERE name = ? AND password = ?', [username, password], one=True)
         if user:
-            return jsonify({'id': user['id'], 'name': user['name'], 'api_key': user['api_key']})
+            return jsonify({'id': user['id'], 'name': user['name'], 'api_key': user['api_key']}), 200
     return jsonify({'error': 'Invalid username or password'}), 401
 
+#creates a new channel
 @app.route('/api/newchannel', methods=['POST'])
 @validate_api_key_and_user
 def create_room():
@@ -118,6 +119,7 @@ def create_room():
     return jsonify({'error': 'Could not create channel'}), 500
 
 
+#loads all channels
 @app.route('/api/channels', methods=['GET'])
 def get_channels():
     channels = query_db('select * from channels')
@@ -125,3 +127,25 @@ def get_channels():
         channels_list = [dict(row) for row in channels]
         return jsonify(channels_list)
     return jsonify([])
+
+@app.route('/api/channel_posts', methods=['GET'])
+@validate_api_key_and_user
+def get_channel_messages():
+    ch_id = request.args.get('channel_id')
+    posts = query_db('select * from posts where channel_id = ?', [ch_id], one=False)
+    print(ch_id, posts)
+    if posts:
+        return jsonify([dict(p) for p in posts]), 200
+    return jsonify([]), 404
+
+@app.route('/api/channel/<ch_id>/newpost', methods=['POST'])
+@validate_api_key_and_user
+def create_post(ch_id):
+    data = request.get_json()
+    user_id = request.headers.get('X-User-ID')
+    newPost = data.get('message')
+    if newPost:
+        post = query_db('insert into posts (channel_id, user_id, body) values (?, ?, ?) returning id, channel_id, user_id, body', [ch_id, user_id, newPost], one=True)
+        if post:
+            return jsonify(dict(post)), 200
+    return jsonify({'error': 'Could not create post'}), 500

@@ -1,16 +1,17 @@
 /* Global styles */
 body {
-  background-color: rgb(1, 22, 30);
-  margin: 0;
+  background-color: whitesmoke;
+  margin: auto;
   font-family: "Kode Mono", serif;
   font-weight: 600;
   font-size: large;
   line-height: 30px;
+  height: 100%;
 }
 
 h3 {
   font-family: "Kode Mono", serif;
-  font-size: 20px;
+  font-size: 28px;
   font-weight: 700;
   text-align: center;
 
@@ -18,7 +19,7 @@ h3 {
 button {
   font-family: "Kode Mono", serif;
   border: 4px double black;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
   padding: 12px;
   margin-bottom: 5px;
@@ -30,7 +31,7 @@ button {
 }
 
 button:hover {
-  background-color: cornsilk;
+  background-color: cornflowerblue;
 }
 
 .wrapper {
@@ -42,16 +43,18 @@ button:hover {
   box-shadow: 0 0 20px black;
   gap: 20px;
   padding: 20px;
+  height: 100%;
 }
 
 .header {
   font-family: "Kode Mono", serif;
   display: grid;
-  grid-template-columns: 3fr 1fr;
+  grid-template-columns: 6fr 1fr;
   padding: 40px;
   grid-column: 1 / 4;
   grid-row: 1;
   border: 4px dotted black;
+  
 }
 
 .header .hero {
@@ -80,10 +83,13 @@ button:hover {
   grid-row: 2/9;
   border: 4px dotted black;
   text-align: center;
+  overflow-y: scroll;
 }
 
 .main {
-  padding: 8px;
+  overflow-y: scroll;
+  padding: 12px;
+  text-align: center;
   grid-column: 2 / 4;
   grid-row: 2/9;
   border: 4px dotted black;
@@ -125,6 +131,69 @@ button:hover {
   display: inline;
 }
 
+#conversationName {
+  cursor: pointer; /* Changes the cursor to indicate the element is clickable */
+  padding: 5px; /* Adds some padding for visual comfort */
+}
+
+#conversationName:hover {
+  background-color: rgb(100, 149, 237, 0.7); /* Changes text color on hover */
+}
+
+
+.conversations .form-group textarea[name="post"] {
+  width: 80%;
+  min-height: 50px;
+  height: auto;
+  gap: 8px;
+  align-items: center;
+  font-size: 24px;
+} 
+
+
+.conversations .form-group button {
+  width: 50px;
+  height: 50px;
+}
+
+.postList {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+message {
+  display: grid;
+  border-bottom: 0.4px dotted black; /* Adds a black border around each post block */
+  padding: 20px; /* Adds some spacing inside the post block, around the content */
+  margin-right:40px; 
+  margin-left:40px;
+}
+
+message author {
+  text-align: left; /* Aligns the author's name to the left */
+  font-weight: bold; /* Optional: Makes the author's name bold */
+  margin-bottom: 10px; /* Adds some space between the author's name and the post body */
+}
+
+message content {
+  text-align: left; /* Ensures the body text is aligned to the left */
+  /* Additional styling for the post body can go here */
+}
+
+#channelNameInput {
+  width: 400px;
+  height: 50px;
+  padding: 0 12px;
+  font-size: 14px;
+}
+
+#channeledit {
+  width: 70px;
+  height: 50px;
+
+}
+
 .footer {
   padding: 8px;
   grid-column: 1 / 4;
@@ -134,4 +203,13 @@ button:hover {
 .hide {
   display: none;
 }
-/* Header styles */
+
+.notFound {
+  justify-content: center; 
+  align-items: center; 
+  width: 400px; 
+  margin: auto; 
+  position: relative;
+  top: 50%;
+  transform: translateY(-50%);
+}

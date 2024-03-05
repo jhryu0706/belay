@@ -2,7 +2,7 @@
 const SPLASH = document.querySelector(".splash.main");
 const PROFILE = document.querySelector(".profile.main");
 const LOGIN = document.querySelector(".login.main");
-const CHAN = document.querySelector(".channel");
+const CHAN = document.querySelector(".conversations.main");
 const getIsvalid = () => localStorage.getItem('isvalid');
 const getUsername = () => localStorage.getItem('username');
 const getCurrentPath = () => window.location.pathname;
@@ -23,7 +23,7 @@ repeatPasswordField.addEventListener("input", checkPasswordRepeat);
 
 function router() {
   let path = getCurrentPath();
-  console.log("here is path: ", path);
+  console.log("path: ", path);
   let isvalid = getIsvalid();
   updateUsername();
   if (isvalid){
@@ -64,7 +64,7 @@ function router() {
   }
   else if(path.startsWith('/channel')){
     if(isvalid === 'true'){
-      navigateTo(channel);
+      navigateTo(CHAN);
     }
     else{
       sessionStorage.setItem('redirect',path);
@@ -79,6 +79,7 @@ function navigateTo(currpage) {
   SPLASH.classList.add("hide");
   PROFILE.classList.add("hide");
   LOGIN.classList.add("hide");
+  CHAN.classList.add("hide");
   currpage.classList.remove("hide");
   switch (currpage) {
     case SPLASH:
@@ -91,7 +92,12 @@ function navigateTo(currpage) {
       history.pushState({page : "/login"}, "Login", "/login");
       break;
     case CHAN:
-      break;
+      let channelID = sessionStorage.getItem('channelID');
+      console.log("navigating to channelID:",channelID);
+      history.pushState({page : `/channel/${channelID}`}, "channel", `/channel/${channelID}`);
+      getPosts();
+      getRoomInfo();
+      // set message polling interval later
     default:
       break;
     }}
@@ -193,7 +199,14 @@ function login() {
     },
     body: JSON.stringify({username: username, password: password})
   })
-  .then(response => response.json())
+  .then(response => {
+    if (response.status === 200) {
+      return response.json(); // Parse JSON body only on successful response
+    } else {
+      // Handle non-successful responses, e.g., 401 Unauthorized
+      return;
+    }}
+  )
   .then(data=> {
     if (data) {
       console.log('Login success:', data);
@@ -251,6 +264,85 @@ function loadChannels(){
     });}
   })
   .catch(error => console.error('Error:', error));
+}
+
+function getPosts(){
+  let channelID = sessionStorage.getItem('channelID');
+  fetch(`/api/channel_posts?channel_id=${channelID}`,{
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-API-Key': localStorage.getItem('api_key'),
+      'X-User-ID': localStorage.getItem('username')
+    }
+  })
+  .then(response => {
+    if (response.status == 200) {
+      return response.json(); // Parse JSON body only on successful response
+    } else {
+      throw new Error('Error:', response.status);
+    }
+  })
+  .then(data => {
+    console.log("this is all posts", data);
+    let messageList = document.querySelector('.postList');
+    messageList.innerHTML = '';
+    data.forEach(message => {
+      let messagediv = document.createElement('message');
+      let authorElement = document.createElement('author');
+      let contentElement = document.createElement('content');
+      authorElement.textContent = message.user_id;
+      contentElement.textContent = message.body;
+      messagediv.appendChild(authorElement);
+      messagediv.appendChild(contentElement);
+      messageList.appendChild(messagediv);
+    });
+  })
+  .catch(error => console.error('Error:', error));
+}
+
+function getRoomInfo(){
+  let channelName = sessionStorage.getItem('channelName');
+  document.getElementById('conversationName').textContent = channelName;
+}
+
+function createPost(){
+  let channelID = sessionStorage.getItem('channelID');
+  let newPost = document.querySelector('.conversations.main textarea[name=post]').value;
+  if (newPost == "") {
+    return;
+  }
+  fetch(`/api/channel/${channelID}/newpost`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-API-Key': localStorage.getItem('api_key'),
+      'X-User-ID': localStorage.getItem('username')
+    },
+    body: JSON.stringify({message: newPost})
+  })
+  .then(response => {
+    if (response.status === 200) {
+      return response.json(); // Parse JSON body only on successful response
+    } else {
+      throw new Error('Error:', response.status);
+    }
+  })
+  .then(data => {
+    console.log(data);
+    getPosts();
+  })
+  .catch(error => console.error('Error:', error));
+}
+
+function showedit(){
+  document.querySelector('.editChannelName').classList.remove('hide');
+  document.getElementById('conversationName').classList.add('hide');
+  document.querySelector('.clicktoedit').classList.add('hide');
+}
+
+function editChannelName() {
+
 }
 
 window.onpopstate = (event) =>{
