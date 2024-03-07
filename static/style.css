@@ -31,7 +31,7 @@ button {
 }
 
 button:hover {
-  background-color: cornflowerblue;
+  background-color: cornsilk;
 }
 
 .wrapper {
@@ -80,19 +80,54 @@ button:hover {
 
 .channels {
   grid-column: 1;
-  grid-row: 2/9;
+  grid-row: 2/-2;
   border: 4px dotted black;
   text-align: center;
   overflow-y: scroll;
+  height: 100%;
+}
+
+.centerelt {
+  display: flex;
+  grid-column: 2/-1;
+  flex-direction: row;
+  justify-content: center;
+  gap: 10px;
+  border: 4px dotted black;
+  height: 100%;
+  align-items: stretch;
+}
+
+.channelList {
+  list-style-type: none; /* Remove bullet points */
+  overflow: hidden;
+  justify-content: center;
+}
+
+.channel {
+  font-size: 20px;
+  font-weight: lighter;
+  padding: 12px;
+}
+
+.selected {
+  background-color: cornsilk;
+}
+
+.channel:hover { 
+  background-color: cornsilk;
 }
 
 .main {
+  flex-grow:1;
   overflow-y: scroll;
   padding: 12px;
   text-align: center;
-  grid-column: 2 / 4;
-  grid-row: 2/9;
-  border: 4px dotted black;
+}
+
+.replies {
+  border-left: dotted black 4px ;
+  overflow-y: scroll;
 }
 
 .form-group {
@@ -137,12 +172,13 @@ button:hover {
 }
 
 #conversationName:hover {
-  background-color: rgb(100, 149, 237, 0.7); /* Changes text color on hover */
+  background-color: cornsilk; /* Changes text color on hover */
 }
 
 
-.conversations .form-group textarea[name="post"] {
+.form-group textarea {
   width: 80%;
+  min-width: 300px;
   min-height: 50px;
   height: auto;
   gap: 8px;
@@ -151,7 +187,7 @@ button:hover {
 } 
 
 
-.conversations .form-group button {
+.form-group button {
   width: 50px;
   height: 50px;
 }

@@ -79,7 +79,7 @@ def signup():
         return jsonify({'name': user['name'], 'password': user['password'], 'api_key': user['api_key']})
     return jsonify({'error': 'Could not create user'}), 500
 
-@app.route('/api/update_user', methods=['PUT'])
+@app.route('/api/update_user', methods=['POST'])
 @validate_api_key_and_user
 def update_user():
     data = request.get_json()
@@ -95,6 +95,18 @@ def update_user():
         return jsonify({'message': 'User updated successfully'}), 200
     except Exception as e:
         return jsonify({'error': 'Database error', 'details': str(e)}), 500
+    
+@app.route('/api/update_channelname', methods=['POST'])
+@validate_api_key_and_user
+def update_channelname():
+    data = request.get_json()
+    ch_id = data.get('channel_id')
+    name = data.get('name')
+    if ch_id and name:
+        query_db('UPDATE channels SET name = ? WHERE id = ?', [name, ch_id])
+        return jsonify({f'message': 'Channel {ch_id}updated successfully'}), 200
+    return jsonify({'error': 'Could not update channel'}), 500
+
 
 @app.route('/api/login', methods=['POST'])
 def login():
@@ -137,6 +149,27 @@ def get_channel_messages():
     if posts:
         return jsonify([dict(p) for p in posts]), 200
     return jsonify([]), 404
+
+@app.route('/api/channel_post_replies', methods=['GET'])
+@validate_api_key_and_user
+def get_post_replies():
+    post_id = request.args.get('post_id')
+    replies = query_db('select * from messages where post_id = ? ORDER BY id ASC', [post_id], one=False)
+    if replies:
+        return jsonify([dict(r) for r in replies]), 200
+    return jsonify([]), 200
+
+@app.route('/api/channel_post/<post_id>/newreply', methods=['POST'])
+@validate_api_key_and_user
+def create_reply(post_id):
+    data = request.get_json()
+    user_id = request.headers.get('X-User-ID')
+    newReply = data.get('message')
+    if newReply:
+        reply = query_db('insert into messages (post_id, user_id, body) values (?, ?, ?) returning id, post_id, user_id, body', [post_id, user_id, newReply], one=True)
+        if reply:
+            return jsonify(dict(reply)), 200
+    return jsonify({'error': 'Could not create reply'}), 500
 
 @app.route('/api/channel/<ch_id>/newpost', methods=['POST'])
 @validate_api_key_and_user

@@ -5,6 +5,7 @@ const LOGIN = document.querySelector(".login.main");
 const CHAN = document.querySelector(".conversations.main");
 const getIsvalid = () => localStorage.getItem('isvalid');
 const getUsername = () => localStorage.getItem('username');
+localStorage.setItem('student', "jhryu");
 const getCurrentPath = () => window.location.pathname;
 
 const passwordField = document.querySelector(".profile.main input[name=password]");
@@ -35,7 +36,6 @@ function router() {
   document.querySelector(".loggedOut").classList.add("hide");
 }
   else{
-    console.log("not valid");
   document.querySelector(".loggedOut").classList.remove("hide");
   document.querySelector(".signup").classList.remove("hide");
   document.querySelector(".createChannelButton").classList.add("hide");
@@ -63,6 +63,7 @@ function router() {
     }
   }
   else if(path.startsWith('/channel')){
+    console.log("channel path");
     if(isvalid === 'true'){
       navigateTo(CHAN);
     }
@@ -124,7 +125,6 @@ function signup(){
 
 function updateUsername(){
   username = getUsername();
-  console.log("updating username:", username);
     if (username){
     document.querySelectorAll('.username').forEach(element=>{
       element.textContent = username;
@@ -136,7 +136,7 @@ function update() {
   let newusername = document.querySelector('.profile.main input[name=username]').value;
   let newpassword = document.querySelector('.profile.main input[name=password]').value;
   fetch('/api/update_user', {
-    method: 'PUT',
+    method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'X-API-Key': localStorage.getItem('api_key'),
@@ -167,16 +167,12 @@ function postloginredirect(){
   let redirect = sessionStorage.getItem('redirect');
   sessionStorage.removeItem('redirect');
   if (redirect){
-    switch (redirect){
-      case '/profile':
-        navigateTo(PROFILE);
-        break;
-      case '/channel':
-        navigateTo(CHAN);
-        break;
-      default:
-        break;
-  }}
+      if (redirect== '/profile'){
+        navigateTo(PROFILE);}
+      else if (redirect.startsWith('/channel')){
+        navigateTo(CHAN);}
+      else (navigateTo(SPLASH));
+  }
   else{
     history.pushState(null, 'Splash', '/');
     router();
@@ -250,24 +246,31 @@ function loadChannels(){
     let clist = document.querySelector('.channelList');
     clist.innerHTML = '';
     data.forEach(channel => {
-      let Channeldiv = document.createElement('div');
+      let Channeldiv = document.createElement('li');
       Channeldiv.classList.add('channel');
+      if (channel.id == sessionStorage.getItem('channelID')){
+        Channeldiv.classList.add('selected');
+      }
       Channeldiv.innerHTML = `<strong>[${channel.id}] ${channel.name}</strong>`;
       Channeldiv.addEventListener('click',()=>{
-        sessionStorage.setItem('channelID',channel.id);
-        sessionStorage.setItem('channelName',channel.name);
-        console.log("loading channelID:",channel.id);
-        history.pushState({page : `/channel/${channel.id}`}, "channel", `/channel/${channel.id}`);
-        router();
+      console.log("channel selected:",channel.id);
+      sessionStorage.setItem('channelID',channel.id);
+      sessionStorage.setItem('channelName',channel.name);
+      history.pushState({page : `/channel/${channel.id}`}, "channel", `/channel/${channel.id}`);
+      router();
       });
       clist.appendChild(Channeldiv);
     });}
   })
   .catch(error => console.error('Error:', error));
+  document.querySelectorAll('.channel').forEach(element=>{
+  });
 }
 
 function getPosts(){
   let channelID = sessionStorage.getItem('channelID');
+  let messageList = document.querySelector('.postList');
+    messageList.innerHTML = '';
   fetch(`/api/channel_posts?channel_id=${channelID}`,{
     method: 'GET',
     headers: {
@@ -279,28 +282,100 @@ function getPosts(){
   .then(response => {
     if (response.status == 200) {
       return response.json(); // Parse JSON body only on successful response
-    } else {
-      throw new Error('Error:', response.status);
+    } else if (response.status == 404) {
+      return {};
     }
   })
   .then(data => {
-    console.log("this is all posts", data);
-    let messageList = document.querySelector('.postList');
-    messageList.innerHTML = '';
     data.forEach(message => {
       let messagediv = document.createElement('message');
       let authorElement = document.createElement('author');
       let contentElement = document.createElement('content');
+      let mid = message.id;
       authorElement.textContent = message.user_id;
       contentElement.textContent = message.body;
       messagediv.appendChild(authorElement);
       messagediv.appendChild(contentElement);
+      let commentIcon = document.createElement('commentIcon');
+      //get comment count and add later
+      let numComments = await getNumberOfReplies(mid);
+      console.log("numComments:",numComments);
+      commentIcon.textContent = `comment ${numComments}`;
+      commentIcon.addEventListener('click',()=>{
+        sessionStorage.setItem('post_id',mid);
+      });
+      messagediv.appendChild(commentIcon);
       messageList.appendChild(messagediv);
     });
   })
   .catch(error => console.error('Error:', error));
 }
 
+async function getNumberOfReplies(post_id) {
+  try {
+    const response = await fetch(`/api/channel_post_replies?post_id=${post_id}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Key': localStorage.getItem('api_key'),
+        'X-User-ID': localStorage.getItem('username')
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.length;
+  } catch (error) {
+    console.error("Failed to fetch the number of replies:", error);
+    // Decide how you want to handle the error. 
+    // You might return 0 or null to indicate failure, or re-throw the error
+    return 0; // Example of returning 0 in case of an error
+  }
+}
+
+
+function getReplies(post_id){
+  console.log("in getReplies post_id:",post_id);
+  const repliesSection = document.querySelector('.replies');
+  //adjusting the style of the wrapper to fit the replies section
+  const wrapper = document.querySelector('.wrapper');
+  repliesSection.classList.remove('hide');
+  wrapper.style.gridTemplateColumns = '1fr 2fr 1fr'; 
+
+  //fetching the comments
+  fetch(`/api/channel_post_replies?post_id=${post_id}`,{
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-API-Key': localStorage.getItem('api_key'),
+      'X-User-ID': localStorage.getItem('username')
+    }
+  })
+  .then(response => {
+    if (response.status == 200) {
+      return response.json(); // Parse JSON body only on successful response
+    } else if (response.status == 404) {
+      return {};
+    }
+  })
+  .then(data => {
+    const replyList = document.querySelector('.replyList');
+    replyList.innerHTML = '';
+    data.forEach(reply => {
+      const replyDiv = document.createElement('message');
+      const authorElement = document.createElement('author');
+      const contentElement = document.createElement('content');
+      authorElement.textContent = reply.user_id;
+      contentElement.textContent = reply.body;
+      replyDiv.appendChild(authorElement);
+      replyDiv.appendChild(contentElement);
+      replyList.appendChild(replyDiv);
+    });
+  })
+}
 function getRoomInfo(){
   let channelName = sessionStorage.getItem('channelName');
   document.getElementById('conversationName').textContent = channelName;
@@ -309,6 +384,7 @@ function getRoomInfo(){
 function createPost(){
   let channelID = sessionStorage.getItem('channelID');
   let newPost = document.querySelector('.conversations.main textarea[name=post]').value;
+  document.querySelector('.conversations.main textarea[name=post]').value = "";
   if (newPost == "") {
     return;
   }
@@ -335,14 +411,78 @@ function createPost(){
   .catch(error => console.error('Error:', error));
 }
 
+function createReply(){
+  let newReply = document.querySelector('.replies textarea[name=reply]').value;
+  let post_id = sessionStorage.getItem('post_id');
+  console.log("in createReply post_id:",post_id);
+  document.querySelector('.replies textarea[name=reply]').value = "";
+  if (newReply == "") {
+    return;
+  }
+  fetch(`/api/channel_post/${post_id}/newreply`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-API-Key': localStorage.getItem('api_key'),
+      'X-User-ID': localStorage.getItem('username')
+    },
+    body: JSON.stringify({message: newReply})
+  })
+  .then(response => {
+    if (response.status === 200) {
+      return response.json(); // Parse JSON body only on successful response
+    } else {
+      throw new Error('Error:', response.status);
+    }
+  })
+  .then(data => {
+    console.log(data);
+    getReplies(post_id);
+  })
+  .catch(error => console.error('Error:', error));
+}
+
 function showedit(){
   document.querySelector('.editChannelName').classList.remove('hide');
   document.getElementById('conversationName').classList.add('hide');
   document.querySelector('.clicktoedit').classList.add('hide');
 }
 
-function editChannelName() {
 
+function editChannelName() {
+  document.querySelector('.editChannelName').classList.add('hide');
+  document.getElementById('conversationName').classList.remove('hide');
+  document.querySelector('.clicktoedit').classList.remove('hide');
+  let channelID = sessionStorage.getItem('channelID');
+  let newChannelName = document.getElementById('channelNameInput').value;
+  document.getElementById('channelNameInput').textContent = "";
+  sessionStorage.setItem('channelName',newChannelName);
+  if (newChannelName == "") {
+    return;
+  }
+  fetch(`/api/update_channelname`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-API-Key': localStorage.getItem('api_key'),
+      'X-User-ID': localStorage.getItem('username')
+    },
+    body: JSON.stringify({
+      name: newChannelName,
+      channel_id: channelID})
+  })
+  .catch(error => {
+    console.error('Error:', error);}
+  )
+    .finally(()=>{
+      try {
+        loadChannels();
+        getRoomInfo();
+        
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    });
 }
 
 window.onpopstate = (event) =>{
@@ -352,7 +492,6 @@ window.onpopstate = (event) =>{
 }
 
 document.addEventListener('DOMContentLoaded',()=>{
-  console.log("DOM loaded");
   history.pushState(null, 'Splash', '/');
   router();
   });

@@ -4,14 +4,6 @@ create table channels (
 );
 
 -- (replies to : id) means that the message is a reply to another message
-create table messages (
-  id INTEGER PRIMARY KEY,
-  post_id INTEGER,
-  user_id INTEGER,
-  body TEXT,
-  FOREIGN KEY(user_id) REFERENCES users(id),
-  FOREIGN KEY(post_id) REFERENCES posts(id)
-);
 
 create table posts (
   id INTEGER PRIMARY KEY,

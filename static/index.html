@@ -26,15 +26,18 @@
       </div>
     </div>
 
-    <!--channels-->
     <div class="channels">
       <h3>
         Channels
       </h3>
-      <div class="channelList">
-      </div>
+      <ul class="channelList">
+      </ul>
     </div>
+    <!--end of channels-->
 
+    <div class="centerelt">
+      <!--channels-->
+    
       <!--splash-->
     <div class="splash main">
       <h3>
@@ -109,7 +112,24 @@
           </div>
         </div>
     </div>
-      
+    <!--end of conversations main-->
+
+    <!--replies-->
+    <div class = "replies main hide">
+      <h3>Replies</h3>
+      <button class="exitReplies" onclick= "(() => document.querySelector('.replies.main').classList.add('hide'))()">Back to conversations</button> 
+      <ul class="replyList">
+      </ul>
+      <div class="replyForm">
+        <div class="form-group">
+          <textarea name="reply" value=""></textarea>
+          <button onclick="createReply()">Add</button>
+        </div>
+    </div>
+    <!--end of replies main-->
+    </div>
+    
+  
   </div>
   <script src="/static/script.js"> </script>
 </body>
