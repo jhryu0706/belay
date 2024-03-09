@@ -30,6 +30,31 @@ button {
   width:300px;
 }
 
+commentIcon {
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+
+commandLine {
+  display: flex;
+  width: 100%;
+  justify-content: flex-end; 
+  gap: 20px;
+}
+
+commandLine > :first-child {
+  margin-left: auto;
+}
+
+commandlinediv > *:hover {
+  transform: scale(1.2);
+}
+
+.emojibox span{
+  margin: 40px;
+}
+
 button:hover {
   background-color: cornsilk;
 }
@@ -227,7 +252,14 @@ message content {
 #channeledit {
   width: 70px;
   height: 50px;
+}
 
+.emojiusersList {
+  display: none;
+}
+
+.emoji:hover .emojiusersList{
+  display: inline;
 }
 
 .footer {
@@ -248,4 +280,30 @@ message content {
   position: relative;
   top: 50%;
   transform: translateY(-50%);
+}
+
+.showinsmall {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .header {
+    display:none;
+  }
+  .wrapper {
+    display: flex;
+    flex-direction: column;
+  }
+  .panel {
+    display: none;
+  }
+  .panel.active {
+    display: block;
+  }
+  .showinsmall {
+    display: block;
+    padding: 20px;
+    gap:20px;
+  }
+
 }

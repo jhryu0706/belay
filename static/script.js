@@ -254,20 +254,24 @@ function loadChannels(){
       Channeldiv.innerHTML = `<strong>[${channel.id}] ${channel.name}</strong>`;
       Channeldiv.addEventListener('click',()=>{
       console.log("channel selected:",channel.id);
+      sessionStorage.setItem('active','post')
+      document.querySelector('.channels').classList.remove('active')
+      document.getElementById('conversations').classList.add('active')
       sessionStorage.setItem('channelID',channel.id);
       sessionStorage.setItem('channelName',channel.name);
-      history.pushState({page : `/channel/${channel.id}`}, "channel", `/channel/${channel.id}`);
+      history.pushState({type: "channel", page : `/channel/${channel.name}`}, `/channel/${channel.name}`, `/channel/${channel.id}`);
       router();
       });
       clist.appendChild(Channeldiv);
     });}
   })
   .catch(error => console.error('Error:', error));
-  document.querySelectorAll('.channel').forEach(element=>{
-  });
 }
 
+
+
 function getPosts(){
+  console.log("in getPosts");
   let channelID = sessionStorage.getItem('channelID');
   let messageList = document.querySelector('.postList');
     messageList.innerHTML = '';
@@ -288,7 +292,16 @@ function getPosts(){
   })
   .then(data => {
     data.forEach(message => {
+      console.log("message:",message);
+      
+
       let messagediv = document.createElement('message');
+      messagediv.addEventListener('click',()=>{
+        
+        sessionStorage.setItem('post_id',message.id);
+      });
+
+      let commandlinediv = document.createElement('commandline');
       let authorElement = document.createElement('author');
       let contentElement = document.createElement('content');
       let mid = message.id;
@@ -298,53 +311,128 @@ function getPosts(){
       messagediv.appendChild(contentElement);
       let commentIcon = document.createElement('commentIcon');
       //get comment count and add later
-      let numComments = await getNumberOfReplies(mid);
-      console.log("numComments:",numComments);
+      numComments = message.message_count;
       commentIcon.textContent = `comment ${numComments}`;
       commentIcon.addEventListener('click',()=>{
+        document.getElementById('conversations').classList.remove('active')
+        document.querySelector('.replies.main').classList.add('active')
+        sessionStorage.setItem('active','replies')
         sessionStorage.setItem('post_id',mid);
+        getReplies(mid, message.body);
       });
-      messagediv.appendChild(commentIcon);
+      deleteIcon = document.createElement('deleteIcon');
+      deleteIcon.textContent = '[delete]';
+      deleteIcon.addEventListener('click',()=>{
+        deletePost(mid);
+      });
+      emojibox = createEmojibox('post', mid);
+      commandlinediv.appendChild(emojibox);
+      commandlinediv.appendChild(commentIcon);
+      commandlinediv.appendChild(deleteIcon)
+      messagediv.appendChild(commandlinediv);
       messageList.appendChild(messagediv);
     });
   })
   .catch(error => console.error('Error:', error));
 }
 
-async function getNumberOfReplies(post_id) {
-  try {
-    const response = await fetch(`/api/channel_post_replies?post_id=${post_id}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-Key': localStorage.getItem('api_key'),
-        'X-User-ID': localStorage.getItem('username')
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status}`);
+function deletePost(post_id){
+  fetch(`/api/deletepost/${post_id}`,{
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-API-Key': localStorage.getItem('api_key'),
+      'X-User-ID': localStorage.getItem('username')
     }
+  })
+  .then(response => { 
+    if (response.status == 200) {
+      getPosts();
+    }
+  });
+}
 
-    const data = await response.json();
-    return data.length;
-  } catch (error) {
-    console.error("Failed to fetch the number of replies:", error);
-    // Decide how you want to handle the error. 
-    // You might return 0 or null to indicate failure, or re-throw the error
-    return 0; // Example of returning 0 in case of an error
-  }
+function createEmojibox(type, id) {
+  let emojibox = document.createElement('div');
+  emojibox.classList.add('emojibox');
+  let emojis = ['👍','👎'];
+  emojis.forEach((emoji,index) => {
+    let emojiElement = document.createElement('span');
+    emojiElement.textContent = emoji;
+    emojiElement.id = id;
+    emojiElement.classList.add('emoji');
+    let emojiusersList = document.createElement('div');
+    emojiusersList.classList.add('emojiusersList');
+    emojiElement.appendChild(emojiusersList)
+    getemojiusers(emojiusersList, type, id, index);
+    emojiElement.addEventListener('click',()=>{
+      //id is post id
+      addemoji(type, id, index);
+    });
+    // emojiElement.addEventListener('mouseenter',()=>{
+    //   emojiusersList.classList.remove('hide');
+    // });
+    // emojiElement.addEventListener('mouseleave',()=>{
+    //   emojiusersList.classList.add('hide');
+    // });
+    emojibox.appendChild(emojiElement);
+  });
+  return emojibox;
+}
+
+function addemoji(type,id, index){
+  fetch(`/api/add_reaction`,{
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-API-Key': localStorage.getItem('api_key'),
+      'X-User-ID': localStorage.getItem('username')
+    },
+    body: JSON.stringify({type: type, id: id, index: index})
+  })
+  .then(response => {
+    if (response.status == 200) {
+      getPosts();
+    }
+  });
 }
 
 
-function getReplies(post_id){
+function getemojiusers(emojiusersList,type, id, index){
+  console.log("in getemojiusers");
+  emojiusersList.innerHTML = '';
+  fetch(`/api/get_reactions?type=${type}&id=${id}&index=${index}`,{
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-API-Key': localStorage.getItem('api_key'),
+      'X-User-ID': localStorage.getItem('username')
+    }
+  })
+  .then(response => {
+    if (response.status == 200) {
+      return response.json(); // Parse JSON body only on successful response
+    } else if (response.status == 404) {
+      return {};
+    }})
+  .then(data => {
+    data.forEach(user => {
+      console.log("emojiusersList: ", emojiusersList)
+      emojiusersList.innerHTML += user + ' ';
+    })}
+  )
+  .catch(error => console.error('Error:', error));
+}
+  
+
+function getReplies(post_id, messagebody){
   console.log("in getReplies post_id:",post_id);
   const repliesSection = document.querySelector('.replies');
   //adjusting the style of the wrapper to fit the replies section
   const wrapper = document.querySelector('.wrapper');
   repliesSection.classList.remove('hide');
   wrapper.style.gridTemplateColumns = '1fr 2fr 1fr'; 
-
+  document.getElementById('posttoreply').textContent = messagebody;
   //fetching the comments
   fetch(`/api/channel_post_replies?post_id=${post_id}`,{
     method: 'GET',
@@ -365,13 +453,17 @@ function getReplies(post_id){
     const replyList = document.querySelector('.replyList');
     replyList.innerHTML = '';
     data.forEach(reply => {
+      let commandlinediv = document.createElement('commandline');
       const replyDiv = document.createElement('message');
       const authorElement = document.createElement('author');
       const contentElement = document.createElement('content');
       authorElement.textContent = reply.user_id;
       contentElement.textContent = reply.body;
+      emojibox = createEmojibox('reply', reply.id);
+      commandlinediv.appendChild(emojibox);
       replyDiv.appendChild(authorElement);
       replyDiv.appendChild(contentElement);
+      replyDiv.appendChild(commandlinediv);
       replyList.appendChild(replyDiv);
     });
   })
@@ -438,6 +530,7 @@ function createReply(){
   .then(data => {
     console.log(data);
     getReplies(post_id);
+    getPosts();
   })
   .catch(error => console.error('Error:', error));
 }
@@ -491,7 +584,22 @@ window.onpopstate = (event) =>{
   }
 }
 
+function backtoconversations() {
+  document.querySelector('.replies.main').classList.add('hide')
+  document.getElementById('conversations').classList.add('active')
+  sessionStorage.setItem('active','post')
+  document.getElementById('replies').classList.remove('active')
+}
+
 document.addEventListener('DOMContentLoaded',()=>{
   history.pushState(null, 'Splash', '/');
+  document.querySelector('.channels').classList.add('active')
+  sessionStorage.setItem('active','channels')
   router();
   });
+
+
+function checkfornewmessage(){
+  polling = setInterval(getPosts, 1000);
+  polling = setInterval(getReplies, 1000);
+}

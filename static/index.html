@@ -95,7 +95,7 @@
     <!--end of login main-->
 
     <!--conversations-->
-    <div class="conversations main">
+    <div class="conversations main panel" id="conversations">
         <h3 id = "conversationName" onclick="showedit()">
         </h3>
         <a class="clicktoedit"> Click to edit <span class="material-symbols-outlined md-18">edit</span></a>
@@ -115,9 +115,10 @@
     <!--end of conversations main-->
 
     <!--replies-->
-    <div class = "replies main hide">
+    <div class = "replies main panel hide" id="replies">
       <h3>Replies</h3>
-      <button class="exitReplies" onclick= "(() => document.querySelector('.replies.main').classList.add('hide'))()">Back to conversations</button> 
+      <div id="posttoreply" class="showinsmall"></div>
+      <button class="exitReplies" onclick= "backtoconversations()">Back to conversations</button> 
       <ul class="replyList">
       </ul>
       <div class="replyForm">

@@ -144,7 +144,7 @@ def get_channels():
 @validate_api_key_and_user
 def get_channel_messages():
     ch_id = request.args.get('channel_id')
-    posts = query_db('select * from posts where channel_id = ?', [ch_id], one=False)
+    posts = query_db('SELECT posts.*, COUNT(messages.id) AS message_count FROM posts LEFT JOIN messages ON posts.id = messages.post_id WHERE posts.channel_id = ? GROUP BY posts.id;', [ch_id], one=False)
     print(ch_id, posts)
     if posts:
         return jsonify([dict(p) for p in posts]), 200
@@ -182,3 +182,52 @@ def create_post(ch_id):
         if post:
             return jsonify(dict(post)), 200
     return jsonify({'error': 'Could not create post'}), 500
+
+@app.route('/api/deletepost/<post_id>', methods=['DELETE'])
+@validate_api_key_and_user
+def delete_post(post_id):
+    user_id = request.headers.get('X-User-ID')
+    print("in delete post user_id:", user_id, "post_id:", post_id)
+    post = query_db('SELECT * FROM posts WHERE id = ?', [post_id], one=True)
+    if post:
+        query_db('DELETE FROM reactions WHERE message_id IN (SELECT id FROM messages WHERE post_id = ?)', [post_id])
+        query_db('DELETE FROM messages WHERE post_id = ?', [post_id])
+        query_db('DELETE FROM post_reactions WHERE post_id = ?;', [post_id])
+        query_db('DELETE FROM posts WHERE id = ?', [post_id])
+        return jsonify({'message': 'Post deleted successfully'}), 200
+    return jsonify({'error': 'Could not delete post'}), 500
+
+@app.route('/api/add_reaction', methods=['POST'])
+@validate_api_key_and_user
+def add_reaction():
+    data = request.get_json()
+    user_id = request.headers.get('X-User-ID')
+    type = data.get('type')
+    id = data.get('id')
+    # index is 0 for dislike 1 for like
+    index = data.get('index')
+    if type == 'post':
+        reaction = query_db('insert into post_reactions (post_id, user_id, emoji) values (?, ?, ?)', [id, user_id, index], one=True)
+        return jsonify({'message': 'Success'}), 200
+    elif type == 'reply':
+        reaction = query_db('insert into reactions (message_id, user_id, emoji) values (?, ?, ?)', [id, user_id, index], one=True)
+        return jsonify({'message': 'Success'}), 200
+    return jsonify({'error': 'Could not add reaction'}), 500
+
+@app.route('/api/get_reactions', methods=['GET'])
+@validate_api_key_and_user
+def get_reactions():
+    type = request.args.get('type')
+    id = request.args.get('id')
+    index = request.args.get('index')
+    if type == 'post':
+        reactions = query_db('select distinct user_id from post_reactions where post_id = ? and emoji = ?', [id, index], one=False)
+        if reactions:
+            user_ids = [r[0] for r in reactions]
+            return jsonify(user_ids), 200
+    elif type == 'reply':
+        reactions = query_db('select distinct user_id from reactions where message_id = ? and emoji = ?', [id, index], one=False)
+        if reactions:
+            user_ids = [r[0] for r in reactions]
+            return jsonify(user_ids), 200
+    return jsonify([]), 200
